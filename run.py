@@ -1,8 +1,10 @@
-import anvil.server
-import anvil.users
-import anvil.tables as tables
-from anvil.tables import app_tables
 import json
+
+import anvil.server
+import anvil.tables as tables
+import anvil.users
+from anvil.tables import app_tables
+
 uplink_key = json.load(open("anvil_key.json"))["Server_Uplink_Key"]
 
 # get the Server_Uplink_Key from anvil_key.json
@@ -15,10 +17,9 @@ app_tables.testdb.add_row(name="test")
 print(app_tables.testdb.search())
 
 # remove all rows from the table
-#for row in app_tables.testdb.search():
-    #row.delete()
+# for row in app_tables.testdb.search():
+# row.delete()
 
 # disconnect from the server
 
 anvil.server.disconnect()
-

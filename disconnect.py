@@ -1,8 +1,10 @@
-import anvil.server
 import json
-
 from contextlib import contextmanager
+
+import anvil.server
+
 uplink_key = json.load(open("anvil_key.json"))["Server_Uplink_Key"]
+
 
 @contextmanager
 def open_anvil_connection(uplink_key):
