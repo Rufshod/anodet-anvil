@@ -1,1 +1,34 @@
-[{"Camera": 0, "Resolution": "800 x 600", "Angle": "Top", "Camera Exposure": -6, "Camera Color Temperature": 3000, "Mask": 0}, {"Camera": 1, "Resolution": "1920 x 1440", "Angle": "Left", "Camera Exposure": 7, "Camera Color Temperature": 3000, "Mask": 0}, {"Camera": 2, "Resolution": "1920 x 1440", "Angle": "Right", "Camera Exposure": 8, "Camera Color Temperature": 3000, "Mask": 0}]
+[
+    {
+        "Camera": 0,
+        "Resolution": "1440 x 1080",
+        "Angle": "Top",
+        "Camera Exposure": -6,
+        "Camera Color Temperature": 3000,
+        "Mask": 0
+    },
+    {
+        "Camera": 1,
+        "Resolution": "1920 x 1440",
+        "Angle": "Left",
+        "Camera Exposure": 7,
+        "Camera Color Temperature": 3000,
+        "Mask": 0
+    },
+    {
+        "Camera": 2,
+        "Resolution": "1920 x 1440",
+        "Angle": "Right",
+        "Camera Exposure": 8,
+        "Camera Color Temperature": 3000,
+        "Mask": 0
+    },
+    {
+        "Camera": 3,
+        "Resolution": "1920 x 1440",
+        "Angle": "Right",
+        "Camera Exposure": 1,
+        "Camera Color Temperature": 3000,
+        "Mask": 0
+    }
+]

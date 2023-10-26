@@ -28,7 +28,7 @@ def save_to_json(data):
 
     # Save the updated data to the JSON file
     with open("camera_config.json", "w") as file:
-        json.dump(existing_data, file)
+        json.dump(existing_data, file, indent=4)
 
 
 @anvil.server.callable
@@ -38,6 +38,7 @@ def load_from_json():
             data = json.load(file)
             return data
     except (json.JSONDecodeError, FileNotFoundError):  # Handle empty or missing file
+        print("camera_config.json not found")
         return []
 
 
