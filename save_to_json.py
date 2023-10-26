@@ -9,18 +9,36 @@ print("Connected to Anvil server")
 
 
 @anvil.server.callable
-def save_to_json(num):
-    data = {"number": num}
+def save_to_json(data):
+    print("Received data:", data)
+    camera_data = data[0]  # Extract the dictionary from the list
+    camera_id = camera_data["Camera"]
+    existing_data = load_from_json()
 
-    with open("number.json", "w") as file:
-        json.dump(data, file)
+    # Check if camera with the same ID exists
+    existing_camera = next(
+        (camera for camera in existing_data if camera["Camera"] == camera_id), None
+    )
+    if existing_camera:
+        # Update the existing camera data
+        existing_camera.update(camera_data)
+    else:
+        # Add the new camera data to the list
+        existing_data.append(camera_data)
+
+    # Save the updated data to the JSON file
+    with open("camera_config.json", "w") as file:
+        json.dump(existing_data, file)
 
 
 @anvil.server.callable
 def load_from_json():
-    with open("number.json", "r") as file:
-        data = json.load(file)
-        return data["number"]
+    try:
+        with open("camera_config.json", "r") as file:
+            data = json.load(file)
+            return data
+    except (json.JSONDecodeError, FileNotFoundError):  # Handle empty or missing file
+        return []
 
 
 anvil.server.wait_forever()
