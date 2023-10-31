@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Multiple Webcams</title>
+</head>
+<body>
+
+  <h1>Multiple Webcams</h1>
+
+  <div id="camera-container">
+      <!-- Cameras will be inserted here -->
+  </div>
+
+  <script>
+    function setupCamera(deviceId, container) {
+      const video = document.createElement('video');
+      video.width = 200;
+      video.height = 200;
+      video.style.border = '1px solid #000';
+      container.appendChild(video);
+
+      navigator.mediaDevices.getUserMedia({ video: { deviceId: deviceId } })
+        .then(function(stream) {
+          video.srcObject = stream;
+          video.play();
+        })
+        .catch(function(error) {
+          console.log('An error occurred: ' + error);
+        });
+    }
+
+    function getConnectedDevices(type) {
+      return navigator.mediaDevices.enumerateDevices()
+        .then(devices => {
+          return devices.filter(device => device.kind === type);
+        });
+    }
+
+    async function setupAllCameras() {
+      const container = document.getElementById('camera-container');
+      const videoDevices = await getConnectedDevices('videoinput');
+
+      if (videoDevices.length > 0) {
+        console.log('Found cameras:');
+        videoDevices.forEach((videoDevice, index) => {
+          console.log(`Camera ${index}:`, videoDevice.label);
+          
+          const newContainer = document.createElement('div');
+          newContainer.style.display = 'inline-block';
+          container.appendChild(newContainer);
+          setupCamera(videoDevice.deviceId, newContainer);
+        });
+      } else {
+        console.log('No cameras found.');
+      }
+    }
+
+    setupAllCameras();
+  </script>
+
+</body>
+</html>
