@@ -46,7 +46,8 @@ def run_mccp():
     print("mccp running")
     # Get settings from json
     # Take picture
-    # Maybe update something in fronend
+    
+    # Maybe update something in fronend :shrug:
 
 if __name__ == "__main__":
     anvil.server.wait_forever()
