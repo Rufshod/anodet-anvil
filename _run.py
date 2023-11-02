@@ -1,5 +1,8 @@
 import json
+
 import anvil.server
+from multicamcomposepro.camera import CameraManager
+from multicamcomposepro.utils import Warehouse
 
 uplink_key = json.load(open("anvil_key.json"))["Server_Uplink_Key"]
 # Connect to Anvil server
@@ -45,9 +48,16 @@ def load_from_json():
 def run_mccp():
     print("mccp running")
     # Get settings from json
+    warehouse = Warehouse()
+    warehouse.build()
+
     # Take picture
-    
-    # Maybe update something in fronend :shrug:
+    camera_manager = CameraManager(warehouse, train_images=1, test_anomaly_images=0)
+    camera_manager.run()
+    print(warehouse)
+
+    # Maybe update something in frontend :shrug:
+
 
 if __name__ == "__main__":
     anvil.server.wait_forever()
