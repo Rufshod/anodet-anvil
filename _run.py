@@ -10,6 +10,21 @@ anvil.server.connect(uplink_key)
 print("Connected to Anvil server")
 
 
+## Flask server to upload images
+
+from flask import Flask, send_from_directory
+import os
+
+app = Flask(__name__)
+angle = "Left"
+object_name = "default2_object"
+path_to_images = os.path.join(os.getcwd(), "data_warehouse", "dataset", object_name, "train", "good", angle)
+print(path_to_images)
+@app.route('/<angle>/<image>')
+def get_image(angle, image):
+    directory = os.path.join(os.getcwd(), "data_warehouse", "dataset", object_name, "train", "good", angle)
+    return send_from_directory(directory, image)
+
 @anvil.server.callable
 def save_to_json(data):
     print("Received data:", data)
@@ -52,7 +67,7 @@ def run_mccp():
     warehouse.build()
 
     # Take picture
-    camera_manager = CameraManager(warehouse, train_images=1, test_anomaly_images=0)
+    camera_manager = CameraManager(warehouse, train_images=1, test_anomaly_images=0, allow_user_input=False)
     camera_manager.run()
     print(warehouse)
 
@@ -60,4 +75,6 @@ def run_mccp():
 
 
 if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
     anvil.server.wait_forever()
+

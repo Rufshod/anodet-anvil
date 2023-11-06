@@ -2,47 +2,7 @@
     {
         "Camera": 0,
         "Resolution": "400 x 400",
-        "Angle": "Left",
-        "Camera Exposure": 5,
-        "Camera Color Temperature": 3000,
-        "Mask": 0
-    },
-    {
-        "Camera": 1,
-        "Resolution": "400 x 400",
         "Angle": "Right",
-        "Camera Exposure": 6,
-        "Camera Color Temperature": 3000,
-        "Mask": 0
-    },
-    {
-        "Camera": 2,
-        "Resolution": "400 x 400",
-        "Angle": "Skip",
-        "Camera Exposure": 1,
-        "Camera Color Temperature": 3000,
-        "Mask": 0
-    },
-    {
-        "Camera": 3,
-        "Resolution": "400 x 400",
-        "Angle": "Bottom",
-        "Camera Exposure": 1,
-        "Camera Color Temperature": 3000,
-        "Mask": 0
-    },
-    {
-        "Camera": 4,
-        "Resolution": "400 x 400",
-        "Angle": "Front",
-        "Camera Exposure": 1,
-        "Camera Color Temperature": 3000,
-        "Mask": 0
-    },
-    {
-        "Camera": 5,
-        "Resolution": "400 x 400",
-        "Angle": "Skip",
         "Camera Exposure": 1,
         "Camera Color Temperature": 3000,
         "Mask": 0
