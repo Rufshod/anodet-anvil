@@ -16,14 +16,25 @@ from flask import Flask, send_from_directory
 import os
 
 app = Flask(__name__)
-angle = "Left"
 object_name = "default2_object"
-path_to_images = os.path.join(os.getcwd(), "data_warehouse", "dataset", object_name, "train", "good", angle)
+path_to_images = os.path.join(os.getcwd(), "data_warehouse", "dataset", object_name, "train", "good")
 print(path_to_images)
 @app.route('/<angle>/<image>')
 def get_image(angle, image):
     directory = os.path.join(os.getcwd(), "data_warehouse", "dataset", object_name, "train", "good", angle)
-    return send_from_directory(directory, image)
+    print("Directory:", directory)
+    print("Image:", image)
+    if os.path.isfile(os.path.join(directory, image)):
+        return send_from_directory(directory, image)
+    else:
+        return "File not found", 404
+
+
+@anvil.server.callable
+def get_image_url(angle, image_name):
+    image_path = f'http://127.0.0.1:5000/{angle}/{image_name}'
+    return image_path
+
 
 @anvil.server.callable
 def save_to_json(data):
