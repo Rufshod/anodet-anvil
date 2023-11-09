@@ -8,9 +8,11 @@ def main():
     warehouse = Warehouse()
     warehouse.build()
     print(warehouse)
-    #cc = CameraConfigurator()
+    # cc = CameraConfigurator()
 
-    camera_manager = CameraManager(warehouse, test_anomaly_images=0, train_images=1, allow_user_input=False)
+    camera_manager = CameraManager(
+        warehouse, test_anomaly_images=0, train_images=1, allow_user_input=False
+    )
     camera_manager.run()
     print(warehouse)
 

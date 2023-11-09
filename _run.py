@@ -1,6 +1,9 @@
 import json
+import os
+import time
 
 import anvil.server
+from flask import Flask, request, send_from_directory
 from multicamcomposepro.camera import CameraManager
 from multicamcomposepro.utils import Warehouse
 
@@ -10,34 +13,46 @@ anvil.server.connect(uplink_key)
 print("Connected to Anvil server")
 
 
-## Flask server to upload images
-
-from flask import Flask, send_from_directory
-import os
+## Flask server to serve images to Anvil
 
 app = Flask(__name__)
 object_name = "preview"
-path_to_images = os.path.join(os.getcwd(), "data_warehouse", "dataset", object_name, "train", "good")
+path_to_images = os.path.join(
+    os.getcwd(), "data_warehouse", "dataset", object_name, "train", "good"
+)
 print(path_to_images)
-@app.route('/<angle>/<image>')
+
+
+@app.route("/<angle>/<image>")
 def get_image(angle, image):
-    directory = os.path.join(os.getcwd(), "data_warehouse", "dataset", object_name, "train", "good", angle)
+    directory = os.path.join(
+        os.getcwd(), "data_warehouse", "dataset", object_name, "train", "good", angle
+    )
+    # Add a cache-busting query parameter
+    cache_buster = request.args.get("cb", int(time.time()))
     print("Directory:", directory)
     print("Image:", image)
     if os.path.isfile(os.path.join(directory, image)):
-        return send_from_directory(directory, image)
+        response = send_from_directory(directory, image)
+        # Modify the cache control headers
+        response.headers["Cache-Control"] = "no-store"
+        return response
     else:
         return "File not found", 404
 
 
 @anvil.server.callable
 def get_image_url(angle, image_name):
-    image_path = f'http://127.0.0.1:5000/{angle}/{image_name}'
+    """Returns the URL of the image on the Flask server so that it can be displayed in the Anvil app"""
+    # Use the current time as a cache-busting query parameter
+    timestamp = int(time.time())
+    image_path = f"http://127.0.0.1:5000/{angle}/{image_name}?cb={timestamp}"
     return image_path
 
 
 @anvil.server.callable
 def save_to_json(data):
+    """Saves the camera data to a JSON file"""
     print("Received data:", data)
     camera_data = data[0]  # Extract the dictionary from the list
     camera_id = camera_data["Camera"]
@@ -61,6 +76,7 @@ def save_to_json(data):
 
 @anvil.server.callable
 def load_from_json():
+    """Loads the camera data from a JSON file"""
     try:
         with open("camera_config.json", "r") as file:
             data = json.load(file)
@@ -69,15 +85,19 @@ def load_from_json():
         print("camera_config.json not found")
         return []
 
+
 @anvil.server.callable
 def capture_initial_images():
+    """Captures the initial images for the cameras in the camera_config.json file"""
     path_to_config = "camera_config.json"
 
     if os.path.exists(path_to_config) and os.path.getsize(path_to_config) > 0:
         print("Capturing initial images")
         warehouse = Warehouse()
         warehouse.build("preview", [])
-        camera_manager = CameraManager(warehouse, train_images=1, test_anomaly_images=0, allow_user_input=False)
+        camera_manager = CameraManager(
+            warehouse, train_images=1, test_anomaly_images=0, allow_user_input=False
+        )
         camera_manager.run()
         return print("Done capturing initial images")
     else:
@@ -86,20 +106,20 @@ def capture_initial_images():
 
 @anvil.server.callable
 def run_mccp():
+    """Runs the multicam compose pro program"""
     print("mccp running")
     # Get settings from json
     warehouse = Warehouse()
     warehouse.build()
 
     # Take picture
-    camera_manager = CameraManager(warehouse, train_images=1, test_anomaly_images=0, allow_user_input=False)
+    camera_manager = CameraManager(
+        warehouse, train_images=1, test_anomaly_images=0, allow_user_input=False
+    )
     camera_manager.run()
     print(warehouse)
-
-    # Maybe update something in frontend :shrug:
 
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
     anvil.server.wait_forever()
-
