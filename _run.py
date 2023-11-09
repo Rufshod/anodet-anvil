@@ -16,7 +16,7 @@ from flask import Flask, send_from_directory
 import os
 
 app = Flask(__name__)
-object_name = "default2_object"
+object_name = "preview"
 path_to_images = os.path.join(os.getcwd(), "data_warehouse", "dataset", object_name, "train", "good")
 print(path_to_images)
 @app.route('/<angle>/<image>')
@@ -70,12 +70,18 @@ def load_from_json():
         return []
 
 @anvil.server.callable
-def check_connected_cameras():
-    print("Checking connected cameras")
-    build = Warehouse().build("preview", [""])
-    camera_manager = CameraManager(build, train_images=1, test_anomaly_images=0, allow_user_input=False)
-    camera_manager.run()
-    return print("Done checking connected cameras")
+def capture_initial_images():
+    path_to_config = "camera_config.json"
+
+    if os.path.exists(path_to_config) and os.path.getsize(path_to_config) > 0:
+        print("Capturing initial images")
+        warehouse = Warehouse()
+        warehouse.build("preview", [])
+        camera_manager = CameraManager(warehouse, train_images=1, test_anomaly_images=0, allow_user_input=False)
+        camera_manager.run()
+        return print("Done capturing initial images")
+    else:
+        print("camera_config.json does not exist or is empty.")
 
 
 @anvil.server.callable
@@ -94,6 +100,6 @@ def run_mccp():
 
 
 if __name__ == "__main__":
-    #app.run(host="0.0.0.0", port=5000)
-    #anvil.server.wait_forever()
-    check_connected_cameras()
+    app.run(host="0.0.0.0", port=5000)
+    anvil.server.wait_forever()
+
