@@ -69,6 +69,14 @@ def load_from_json():
         print("camera_config.json not found")
         return []
 
+@anvil.server.callable
+def check_connected_cameras():
+    print("Checking connected cameras")
+    build = Warehouse().build("preview", [""])
+    camera_manager = CameraManager(build, train_images=1, test_anomaly_images=0, allow_user_input=False)
+    camera_manager.run()
+    return print("Done checking connected cameras")
+
 
 @anvil.server.callable
 def run_mccp():
@@ -86,6 +94,6 @@ def run_mccp():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
-    anvil.server.wait_forever()
-
+    #app.run(host="0.0.0.0", port=5000)
+    #anvil.server.wait_forever()
+    check_connected_cameras()
