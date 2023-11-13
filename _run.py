@@ -7,19 +7,19 @@ from flask import Flask, request, send_from_directory
 from multicamcomposepro.camera import CameraManager
 from multicamcomposepro.utils import Warehouse
 
-uplink_key = json.load(open("anvil_key.json"))["Server_Uplink_Key"]
+
 # Connect to Anvil server
+uplink_key = json.load(open("anvil_key.json"))["Server_Uplink_Key"]
 anvil.server.connect(uplink_key)
 print("Connected to Anvil server")
 
-
 ## Flask server to serve images to Anvil
-
 app = Flask(__name__)
 object_name = "preview"
-path_to_images = os.path.join(
-    os.getcwd(), "data_warehouse", "dataset", object_name, "train", "good"
-)
+path_to_images = os.path.join(os.getcwd(), "data_warehouse", "dataset", object_name, "train", "good")
+
+# path_to_distributions here
+
 print(path_to_images)
 
 
@@ -118,6 +118,8 @@ def run_mccp():
     )
     camera_manager.run()
     print(warehouse)
+
+    
 
 
 if __name__ == "__main__":
