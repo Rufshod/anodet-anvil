@@ -19,8 +19,7 @@ print("Connected to Anvil server")
 app = Flask(__name__)
 object_name = "preview"
 path_to_images = os.path.join(os.getcwd(), "data_warehouse", "dataset", object_name, "train", "good")
-
-# TODO path_to_distributions here
+distributions_path = os.path.join(os.getcwd(), "data_warehouse", "distributions")
 
 
 # Called when URL is loaded
@@ -42,21 +41,18 @@ def get_image(angle, image):
         return "File not found", 404
 
 @anvil.server.callable
-def get_distribution_list():
+def get_distribution_list(distributions_path=distributions_path):
     # List the DIR NAMES in data_warehouse/distributions
-    folder_path = os.path.join(os.getcwd(), "data_warehouse", "distributions")
-    folder_contents = os.listdir(folder_path)
+    folder_contents = os.listdir(distributions_path)
     return folder_contents if folder_contents else "No distributions saved!"
 
 @anvil.server.callable
-def run_prediction(object_name):
-    print("run_prediction")
-
-    # Same as get_distributions_list - should maybe be in Warehouse class
-    distributions_path = os.path.join(os.getcwd(), "data_warehouse", "distributions")
+def run_prediction(object_name, distributions_path=distributions_path):
 
     # TODO update hardcoded cam_names with input strings from Anvil
-    predict(distributions_path, cam_name="cam_0_left", object_name=object_name, test_images=["/Users/helvetica/_master_anodet/anodet/data_warehouse/dataset/purple_duck/test/albinism/cam_0_left/001.png"], THRESH=13)
+    
+    # for angle in angles:
+    predict(distributions_path, cam_name="cam_0_left", object_name=object_name, test_images=["/Users/helvetica/anodet-anvil/data_warehouse/dataset/purple_duck/test/albinism/cam_0_left/023.png"], THRESH=13)
 
 
 
