@@ -114,7 +114,7 @@ def run_mccp():
 
     # Take picture
     camera_manager = CameraManager(
-        warehouse, train_images=1, test_anomaly_images=0, allow_user_input=False
+        warehouse, train_images=1, test_anomaly_images=0, allow_user_input=False, overwrite_original = False
     )
     camera_manager.run()
     print(warehouse)
@@ -125,3 +125,4 @@ def run_mccp():
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
     anvil.server.wait_forever()
+
