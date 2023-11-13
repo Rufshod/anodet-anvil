@@ -9,7 +9,10 @@ import matplotlib.pyplot as plt
 import sys
 
 # Get anodet by path
-sys.path.append('/Users/helvetica/_master_anodet/anodet')
+current_dir = os.getcwd()
+target_dir = os.path.join(current_dir, '..', 'anodet')
+sys.path.append(target_dir)
+
 from anodet import Padim, AnodetDataset, to_batch, classification, visualization, standard_image_transform
 
 def get_dataloader(dataset_path, cam_name, object_name):
@@ -59,3 +62,6 @@ def predict(distributions_path, cam_name, object_name, test_images, THRESH=13):
     print("Saved figures.")
         
     return image_classifications, image_scores, score_maps
+
+if __name__ == "__main__":
+    print(sys.path)
