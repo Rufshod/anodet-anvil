@@ -3,11 +3,16 @@ import cv2
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
+import matplotlib
+matplotlib.use('Agg')  # Set the backend to non-interactive one (Agg)
 import matplotlib.pyplot as plt
 import sys
 
 # Get anodet by path
-sys.path.append('/Users/helvetica/_master_anodet/anodet')
+current_dir = os.getcwd()
+target_dir = os.path.join(current_dir, '..', 'anodet')
+sys.path.append(target_dir)
+
 from anodet import Padim, AnodetDataset, to_batch, classification, visualization, standard_image_transform
 
 def get_dataloader(dataset_path, cam_name, object_name):
@@ -22,7 +27,9 @@ def model_fit(model, dataloader, distributions_path, cam_name, object_name):
     torch.save(model.cov_inv, os.path.join(distributions_path, f"{object_name}/{object_name}_{cam_name}_cov_inv.pt"))
     print(f"Parameters saved at {distributions_path}")
 
-def predict(dataset_path, distributions_path, cam_name, object_name, test_images, THRESH=13):
+def predict(distributions_path, cam_name, object_name, test_images, THRESH=13):
+    print("ano - predict running")
+
     images = [cv2.cvtColor(cv2.imread(path), cv2.COLOR_BGR2RGB) for path in test_images]
     batch = to_batch(images, standard_image_transform, torch.device("cpu"))
 
@@ -41,8 +48,6 @@ def predict(dataset_path, distributions_path, cam_name, object_name, test_images
     heatmap_images = visualization.heatmap_images(test_images, score_maps, alpha=0.5)
     highlighted_images = visualization.highlighted_images(images, score_map_classifications, color=(128, 0, 128))
 
-    # TODO Save img instead of plt.show()
-
     for idx in range(len(images)):
         fig, axs = plt.subplots(1, 4, figsize=(12, 6))
         fig.suptitle(f"Image: {idx}", y=0.75, fontsize=14)
@@ -50,45 +55,13 @@ def predict(dataset_path, distributions_path, cam_name, object_name, test_images
         axs[1].imshow(boundary_images[idx])
         axs[2].imshow(heatmap_images[idx])
         axs[3].imshow(highlighted_images[idx])
-        plt.show()
+        
+        plt.savefig(f"data_warehouse/plots/plot_{idx}.png")
+        plt.close()
 
-    heatmap_images = visualization.heatmap_images(test_images, score_maps, alpha=0.5)
-    tot_img = visualization.merge_images(heatmap_images, margin=40)
-    fig, axs = plt.subplots(1, 1, figsize=(10, 6))
-    plt.imshow(tot_img)
-    plt.show()
-
+    print("Saved figures.")
+        
     return image_classifications, image_scores, score_maps
 
-def main():
-
-    # These should be callables from anvil probably
-    dataset_path = os.path.realpath("/Users/helvetica/_master_anodet/anodet/data_warehouse/dataset/")
-    distributions_path = os.path.realpath("/Users/helvetica/_master_anodet/anodet/data_warehouse/dataset/")
-    model = Padim(backbone="resnet18")
-    object_name = "purple_duck"
-    cam_names = ["cam_0_left", "cam_1_right"]
-
-    for cam_name in cam_names:
-        # Uncomment to train:
-        # dataloader = get_dataloader(dataset_path, cam_name, object_name)
-        # model_fit(model, dataloader, distributions_path, cam_name, object_name)
-
-        # TODO Need to split this main into "train" and "test"
-
-        anomaly = ["Albinism"]  # Replace with camera output dir
-        test_images = [os.path.join(dataset_path, f"{object_name}/test/{anomaly[0]}/{cam_name}/000.png")]
-
-        results = predict(dataset_path, distributions_path, cam_name, object_name, test_images)
-
-        for i, result in enumerate(zip(*results)):
-            image_file = cv2.imread(test_images[i])
-            image_classification, image_score, score_map = result
-
-            if image_classification == 0:
-                print(f"Image {i} from {cam_name}: 🦆 Anomaly duck detected: ({image_score}).")
-            else:
-                print(f"Image {i} from {cam_name}: Passed. ({image_score})")
-
 if __name__ == "__main__":
-    main()
+    print(sys.path)

@@ -7,6 +7,8 @@ from flask import Flask, request, send_from_directory
 from multicamcomposepro.camera import CameraManager
 from multicamcomposepro.utils import Warehouse
 
+from ano import predict
+
 
 # Connect to Anvil server
 uplink_key = json.load(open("anvil_key.json"))["Server_Uplink_Key"]
@@ -18,11 +20,10 @@ app = Flask(__name__)
 object_name = "preview"
 path_to_images = os.path.join(os.getcwd(), "data_warehouse", "dataset", object_name, "train", "good")
 
-# path_to_distributions here
-
-print(path_to_images)
+# TODO path_to_distributions here
 
 
+# Called when URL is loaded
 @app.route("/<angle>/<image>")
 def get_image(angle, image):
     directory = os.path.join(
@@ -30,15 +31,33 @@ def get_image(angle, image):
     )
     # Add a cache-busting query parameter
     cache_buster = request.args.get("cb", int(time.time()))
-    print("Directory:", directory)
-    print("Image:", image)
+
     if os.path.isfile(os.path.join(directory, image)):
         response = send_from_directory(directory, image)
+        
         # Modify the cache control headers
         response.headers["Cache-Control"] = "no-store"
         return response
     else:
         return "File not found", 404
+
+@anvil.server.callable
+def get_distribution_list():
+    # List the DIR NAMES in data_warehouse/distributions
+    folder_path = os.path.join(os.getcwd(), "data_warehouse", "distributions")
+    folder_contents = os.listdir(folder_path)
+    return folder_contents if folder_contents else "No distributions saved!"
+
+@anvil.server.callable
+def run_prediction(object_name):
+    print("run_prediction")
+
+    # Same as get_distributions_list - should maybe be in Warehouse class
+    distributions_path = os.path.join(os.getcwd(), "data_warehouse", "distributions")
+
+    # TODO update hardcoded cam_names with input strings from Anvil
+    predict(distributions_path, cam_name="cam_0_left", object_name=object_name, test_images=["/Users/helvetica/_master_anodet/anodet/data_warehouse/dataset/purple_duck/test/albinism/cam_0_left/001.png"], THRESH=13)
+
 
 
 @anvil.server.callable

@@ -163,3 +163,5 @@ cython_debug/
 *_key.json
 camera_config.json
 *data_warehouse/*
+
+*DS_Store
