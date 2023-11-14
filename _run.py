@@ -18,21 +18,21 @@ from multicamcomposepro.utils import Warehouse
 
 from ano import predict
 
-# Connect to Anvil server
+# =============== Anvil & Flask =============== #
+
 uplink_key = json.load(open("anvil_key.json"))["Server_Uplink_Key"]
 anvil.server.connect(uplink_key)
 print("Connected to Anvil server")
 
-## Flask server to serve images to Anvil
 app = Flask(__name__)
 object_name = "preview"
 path_to_images = os.path.join(
     os.getcwd(), "data_warehouse", "dataset", object_name, "train", "good"
 )
 
+# ============================================ #
 
-# TODO path_to_distributions here
-
+distributions_path = "data_warehouse/distributions"
 
 # Function to set the object name from Anvil
 @anvil.server.callable
@@ -137,8 +137,7 @@ def capture_initial_images():
     """Captures the initial images for the cameras in the camera_config.json file"""
     path_to_config = "camera_config.json"
 
-    if os.path.exists(path_to_config) and os.path.getsize(path_to_config) 
-    0:
+    if os.path.exists(path_to_config) and os.path.getsize(path_to_config):
         print("Capturing initial images")
         warehouse = Warehouse()
         warehouse.build("preview", [])
