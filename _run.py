@@ -1,9 +1,18 @@
 import json
 import os
 import time
+import sys
 
 import anvil.server
 from flask import Flask, request, send_from_directory
+# from multicamcomposepro.camera import CameraManager
+# from multicamcomposepro.utils import Warehouse
+
+# Get mccp by path
+current_dir = os.getcwd()
+target_dir = os.path.join(current_dir, '..', 'mccp/src')
+sys.path.append(target_dir)
+
 from multicamcomposepro.camera import CameraManager
 from multicamcomposepro.utils import Warehouse
 
@@ -128,11 +137,14 @@ def run_mccp():
     warehouse.build()
 
     # Take picture
-    camera_manager = CameraManager(
-        warehouse, train_images=1, test_anomaly_images=0, allow_user_input=False, overwrite_original = False
-    )
+    camera_manager = CameraManager(warehouse, train_images=1, test_anomaly_images=0, allow_user_input=False)
     camera_manager.run()
     print(warehouse)
+
+@anvil.server.callabale
+def capture_train_images():
+    
+    pass
 
     
 
