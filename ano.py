@@ -29,13 +29,14 @@ config_resnet = {
         }
     },
     "activation": "ReLU",
-    "batch_size": 32
+    "batch_size": 32,
+    "device": "cpu",
+    "gaussian_blur": True,
+    "threshold": 13
 }
 
-# Backbone resnet18 or wide_resnet50
-# Preprocessing
-
-
+# Backbone resnet18 or wide_resnet50 TODO add support for other resnet
+# TODO add layer_hooks
 
 
 # Run images in dataloader(train) and test images through this pipeline
@@ -54,11 +55,6 @@ def build_preprocessing(preprocessing_config):
     return preprocessing_pipeline
 
 
-
-
-
-
-
 # Used during train to batch and pre-process images
 def get_dataloader(dataset_path, cam_name, object_name):
     dataset = AnodetDataset(
@@ -73,41 +69,37 @@ def get_dataloader(dataset_path, cam_name, object_name):
     return dataloader
 
 
-
-
-
 def model_fit(model, dataloader, distributions_path, cam_name, object_name):
     model.fit(dataloader)
     save_path = os.path.join(distributions_path, f"{object_name}/{object_name}_{cam_name}")
-
-    # Save model (mean and cov_inv)
     torch.save(model.mean, save_path + "_mean.pt")
     torch.save(model.mean, save_path + "_cov_inv.pt")
     print(f"Parameters saved at {save_path}")
 
-
-
-
-
-
 # Semi-implemented in _run.py 
-def predict(distributions_path, cam_name, object_name, test_images, THRESH=13):
-    print("ano - predict running")
+def predict(distributions_path, cam_name, object_name, test_images, THRESH=config_resnet.get("threshold", 13)):
+
+    # While this IS built for multiple images, it's not built for multiple angles.
+    # Meaning we have to predict on all unique angles as unique instances.
 
     images = [cv2.cvtColor(cv2.imread(path), cv2.COLOR_BGR2RGB) for path in test_images]
+    device = config_resnet.get("device", 'cpu')
+    distributions_path = os.path.join(distributions_path, f"{object_name}/{object_name}_{cam_name}")
 
-    # Preprocessing config
-    batch = to_batch(images, build_preprocessing(config_resnet), torch.device("cpu"))
+    # Preprocessing test image(s)
+    batch = to_batch(images, build_preprocessing(config_resnet), torch.device(device))
 
-    mean = torch.load(os.path.join(distributions_path, f"{object_name}/{object_name}_{cam_name}_mean.pt"))
-    cov_inv = torch.load(os.path.join(distributions_path, f"{object_name}/{object_name}_{cam_name}_cov_inv.pt"))
-
-    padim = Padim(backbone="resnet18", mean=mean, cov_inv=cov_inv, device=torch.device("cpu"))
-    image_scores, score_maps = padim.predict(batch)
-
+    # Load model (mean and cov_inv)
+    mean = torch.load(distributions_path + "_mean.pt")
+    cov_inv = torch.load(distributions_path + "_cov_inv.pt")
+    padim = Padim(backbone="resnet18", mean=mean, cov_inv=cov_inv, device=torch.device(device))
+    
+    # Predict and classify
+    image_scores, score_maps = padim.predict(batch, gaussian_blur=config_resnet.get("gaussian_blur"))
     score_map_classifications = classification(score_maps, THRESH)
     image_classifications = classification(image_scores, THRESH)
 
+    # Plots
     test_images = np.array(images).copy()
 
     boundary_images = visualization.framed_boundary_images(test_images, score_map_classifications, image_classifications, padding=40)
@@ -125,19 +117,13 @@ def predict(distributions_path, cam_name, object_name, test_images, THRESH=13):
         plt.savefig(f"data_warehouse/plots/plot_{idx}.png")
         plt.close()
 
-    print("Saved figures.")
+    print("Saved figure at data_warehouse/plots.")
         
     return image_classifications, image_scores, score_maps
 
-
-
-
-
-
-
 if __name__ == "__main__":
 
-    is_train = False
+    is_train = True
 
     if is_train == True:
         dataloader = get_dataloader("data_warehouse/dataset", "cam_0_left", "purple_duck")
