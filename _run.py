@@ -1,9 +1,18 @@
 import json
 import os
 import time
+import sys
 
 import anvil.server
 from flask import Flask, request, send_from_directory
+# from multicamcomposepro.camera import CameraManager
+# from multicamcomposepro.utils import Warehouse
+
+# Get mccp by path
+current_dir = os.getcwd()
+target_dir = os.path.join(current_dir, '..', 'mccp/src')
+sys.path.append(target_dir)
+
 from multicamcomposepro.camera import CameraManager
 from multicamcomposepro.utils import Warehouse
 
@@ -57,19 +66,14 @@ def get_image(angle, image):
 
 
 @anvil.server.callable
-def get_distribution_list():
+def get_distribution_list(distributions_path=distributions_path):
     # List the DIR NAMES in data_warehouse/distributions
-    folder_path = os.path.join(os.getcwd(), "data_warehouse", "distributions")
-    folder_contents = os.listdir(folder_path)
+    folder_contents = os.listdir(distributions_path)
     return folder_contents if folder_contents else "No distributions saved!"
 
 
 @anvil.server.callable
-def run_prediction(object_name):
-    print("run_prediction")
-
-    # Same as get_distributions_list - should maybe be in Warehouse class
-    distributions_path = os.path.join(os.getcwd(), "data_warehouse", "distributions")
+def run_prediction(object_name, distributions_path=distributions_path):
 
     # TODO update hardcoded cam_names with input strings from Anvil
     predict(
@@ -133,7 +137,8 @@ def capture_initial_images():
     """Captures the initial images for the cameras in the camera_config.json file"""
     path_to_config = "camera_config.json"
 
-    if os.path.exists(path_to_config) and os.path.getsize(path_to_config) > 0:
+    if os.path.exists(path_to_config) and os.path.getsize(path_to_config) 
+    0:
         print("Capturing initial images")
         warehouse = Warehouse()
         warehouse.build("preview", [])

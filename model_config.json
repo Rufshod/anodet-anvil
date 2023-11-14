@@ -1,0 +1,12 @@
+{
+    "backbone": "ResNet18",
+    "preprocessing": {
+        "resize": 224,
+        "normalize": {
+            "mean": [1.485, 1.456, 1.406],
+            "std": [1.229, 1.224, 1.225]
+        }
+    },
+    "activation": "ReLU",
+    "batch_size": 32
+}
