@@ -37,7 +37,10 @@ config_resnet = {
 
 # Backbone resnet18 or wide_resnet50 TODO add support for other resnet
 # TODO add layer_hooks
+# TODO set parameters for ResnetEmbeddingsExtractor
 
+
+# Should we set global paths and object name?
 
 # Run images in dataloader(train) and test images through this pipeline
 def build_preprocessing(preprocessing_config):
@@ -82,6 +85,8 @@ def predict(distributions_path, cam_name, object_name, test_images, THRESH=confi
     # While this IS built for multiple images, it's not built for multiple angles.
     # Meaning we have to predict on all unique angles as unique instances.
 
+    # An idea - perhaps - is to modify the DataLoader / AnodetDataset to hold images for all angles
+
     images = [cv2.cvtColor(cv2.imread(path), cv2.COLOR_BGR2RGB) for path in test_images]
     device = config_resnet.get("device", 'cpu')
     distributions_path = os.path.join(distributions_path, f"{object_name}/{object_name}_{cam_name}")
@@ -123,18 +128,16 @@ def predict(distributions_path, cam_name, object_name, test_images, THRESH=confi
 
 if __name__ == "__main__":
 
-    is_train = True
+    dataset_path = "data_warehouse/dataset"
+    distributions_path = "data_warehouse/distributions"
+    cam_name = "cam_1_right"
+    object_name = ["purple_duck"]
 
-    if is_train == True:
-        dataloader = get_dataloader("data_warehouse/dataset", "cam_0_left", "purple_duck")
-
+    # Train
+    if True:
+        dataloader = get_dataloader(dataset_path, cam_name, object_name[0])
         backbone_name = config_resnet["backbone"]
         model = Padim(backbone=backbone_name.lower())
-
-        distributions_path = "data_warehouse/distributions"
-
-        cam_name = "cam_1_right"
-        object_name = ["purple_duck"]
         model_fit(model, dataloader, distributions_path, cam_name, object_name[0])
 
     predict(distributions_path="data_warehouse/distributions", cam_name="cam_0_left", object_name="purple_duck", test_images=["data_warehouse/dataset/purple_duck/test/good/cam_0_left/015.png"])
