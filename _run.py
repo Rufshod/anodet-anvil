@@ -16,7 +16,7 @@ sys.path.append(target_dir)
 from multicamcomposepro.camera import CameraManager
 from multicamcomposepro.utils import Warehouse
 
-from ano import predict
+from ano import predict, get_dataloader, model_fit, get_model
 
 # =============== Anvil & Flask =============== #
 
@@ -33,6 +33,33 @@ path_to_images = os.path.join(
 # ============================================ #
 
 distributions_path = "data_warehouse/distributions"
+dataset_path = "data_warehouse/dataset"
+camera_config = "camera_config.json"
+model_config = "model_config.json" # TODO!! 
+
+
+@anvil.server.callable
+def train_model(object_name = object_name, camera_config = camera_config, resnet_config = None):
+    """Create and fit model. Stores model parameters in warehouse/distributions/{objet_name}."""
+
+    # TODO  load parameters (some of them) from model_config
+
+    #  Load angles from json
+    with open(camera_config, "r") as file:
+        camera_config_file = file.read()
+    data = json.loads(camera_config_file)
+    angles = [item["Angle"] for item in data]
+
+    if 'Skip' in angles:
+        angles.remove('Skip')
+
+    #  Should load json for resnet_config here TODO
+    model = get_model(selected_model="resnet18") #  TODO resnet_config json file for input arg
+
+    for angle in angles:
+        dataloader = get_dataloader(dataset_path, angle, object_name)
+        model_fit(model, dataloader, distributions_path, angle, object_name)
+        #  This for loop works for now, but a future implementation should be to rewrite the dataloader
 
 # Function to set the object name from Anvil
 @anvil.server.callable
@@ -70,6 +97,13 @@ def clean_name(name):
     warehouse = Warehouse()
     warehouse.clean_folder_name(name)
     return name
+
+
+
+
+
+
+
 
 @anvil.server.callable
 def get_distribution_list(distributions_path=distributions_path):
