@@ -42,6 +42,18 @@ config_resnet = {
 
 # Should we set global paths and object name?
 
+
+def get_model(selected_model="resnet18"):
+    if selected_model == "resnet18":
+        model = Padim("resnet18")
+    elif selected_model == "wide_resnet50":
+        pass
+    elif selected_model == "patchcore":
+        pass
+    
+    return model
+
+
 # Run images in dataloader(train) and test images through this pipeline
 def build_preprocessing(preprocessing_config):
     print("Preprocessing Config:", preprocessing_config)
@@ -74,10 +86,15 @@ def get_dataloader(dataset_path, cam_name, object_name):
 
 def model_fit(model, dataloader, distributions_path, cam_name, object_name):
     model.fit(dataloader)
+    
+    # Create object dir
+    save_path = os.path.join(distributions_path, object_name)
+    os.makedirs(save_path, exist_ok=True)
+
     save_path = os.path.join(distributions_path, f"{object_name}/{object_name}_{cam_name}")
     torch.save(model.mean, save_path + "_mean.pt")
     torch.save(model.mean, save_path + "_cov_inv.pt")
-    print(f"Parameters saved at {save_path}")
+    print(f"Parameters saved at {distributions_path}")
 
 # Semi-implemented in _run.py 
 def predict(distributions_path, cam_name, object_name, test_images, THRESH=config_resnet.get("threshold", 13)):
