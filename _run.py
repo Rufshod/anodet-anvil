@@ -64,6 +64,12 @@ def get_image(angle, image):
     else:
         return "File not found", 404
 
+# use utils clean folder name function
+@anvil.server.callable
+def clean_name(name):
+    warehouse = Warehouse()
+    warehouse.clean_folder_name(name)
+    return name
 
 @anvil.server.callable
 def get_distribution_list(distributions_path=distributions_path):
