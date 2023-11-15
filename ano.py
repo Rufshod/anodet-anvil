@@ -119,7 +119,7 @@ def predict(distributions_path, cam_name, object_name, test_images, THRESH=confi
         axs[2].imshow(heatmap_images[idx])
         axs[3].imshow(highlighted_images[idx])
         
-        plt.savefig(f"data_warehouse/plots/plot_{idx}.png")
+        plt.savefig(f"data_warehouse/plots/plot_{idx}.png") # TODO save to warehouse/plots/object_name/angle
         plt.close()
 
     print("Saved figure at data_warehouse/plots.")
@@ -128,8 +128,11 @@ def predict(distributions_path, cam_name, object_name, test_images, THRESH=confi
 
 if __name__ == "__main__":
 
+    # Should be the same for the entire app
     dataset_path = "data_warehouse/dataset"
     distributions_path = "data_warehouse/distributions"
+    
+    # Should be set for user
     cam_name = "cam_1_right"
     object_name = ["purple_duck"]
 
