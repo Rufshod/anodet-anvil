@@ -96,7 +96,7 @@ def set_object_name(object_input_name: str = "object") -> str:
     return object_name
 
 
-# Called when URL is loaded
+# Called when URL is loaded TRAIN IMAGE
 @app.route("/<angle>/<image>")
 def get_image(angle: str, image: str) -> Union[str, Response]:
     """
@@ -125,7 +125,65 @@ def get_image(angle: str, image: str) -> Union[str, Response]:
         return response
     else:
         return "File not found", 404
+# TEST IMAGE
+@app.route("/test/<angle>/<image>")
+def get_test_image(angle: str, image: str) -> Union[str, Response]:
+    """
+    Retrieve an image from the test directory.
 
+    Args:
+        angle (str): The angle of the camera.
+        image (str): The name of the image file.
+
+    Returns:
+        Union[str, Response]: The image file or an error message.
+    """
+    directory = os.path.join(
+        os.getcwd(), "data_warehouse", "dataset", object_name, "test", "good", angle
+    )
+    full_path = os.path.join(directory, image)
+    print("Full path to image:", full_path)
+    # Add a cache-busting query parameter
+    cache_buster = request.args.get("cb", int(time.time()))
+
+    if os.path.isfile(os.path.join(directory, image)):
+        response = send_from_directory(directory, image)
+
+        # Modify the cache control headers
+        response.headers["Cache-Control"] = "no-store"
+        return response
+    else:
+        return "File not found", 404
+    
+
+@app.route("/test/<angle>/<image>")
+def get_plot(angle: str, image: str) -> Union[str, Response]:
+    """
+    Retrieve an image from the test directory.
+
+    Args:
+        angle (str): The angle of the camera.
+        image (str): The name of the image file.
+
+    Returns:
+        Union[str, Response]: The image file or an error message.
+    """
+    directory = os.path.join(
+        os.getcwd(), "data_warehouse", "plots", object_name, angle
+    )
+    full_path = os.path.join(directory, image)
+    print("Full path to image:", full_path)
+    # Add a cache-busting query parameter
+    cache_buster = request.args.get("cb", int(time.time()))
+
+    if os.path.isfile(os.path.join(directory, image)):
+        response = send_from_directory(directory, image)
+
+        # Modify the cache control headers
+        response.headers["Cache-Control"] = "no-store"
+        return response
+    else:
+        return "File not found", 404
 
 # use utils clean folder name function
 @anvil.server.callable
@@ -204,6 +262,24 @@ def get_image_url(angle, image_name):
     # Use the current time as a cache-busting query parameter
     timestamp = int(time.time())
     image_path = f"http://127.0.0.1:5000/{angle}/{image_name}?cb={timestamp}"
+    return image_path
+
+@anvil.server.callable
+def get_test_image_url(angle, image_name):
+    """Returns the URL of the image from the test directory on the Flask server so that it can be displayed in the Anvil app"""
+    # Use the current time as a cache-busting query parameter
+    timestamp = int(time.time())
+    # Update the URL to point to the new Flask route for test images
+    image_path = f"http://127.0.0.1:5000/test/{angle}/{image_name}?cb={timestamp}"
+    return image_path
+
+@anvil.server.callable
+def get_plot_url(angle):
+    """Returns the URL of the image from the test directory on the Flask server so that it can be displayed in the Anvil app"""
+    # Use the current time as a cache-busting query parameter
+    timestamp = int(time.time())
+    # Update the URL to point to the new Flask route for test images
+    image_path = f"http://127.0.0.1:5000/test/{angle}?cb={timestamp}"
     return image_path
 
 
