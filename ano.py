@@ -244,8 +244,8 @@ if __name__ == "__main__":
     distributions_path = "data_warehouse/distributions"
 
     # Should be set for user
-    cam_name = "cam_1_right"
-    object_name = ["purple_duck"]
+    cam_name = "Front"
+    object_name = ["cute_boi"]
 
     # Train
     if True:
@@ -256,7 +256,8 @@ if __name__ == "__main__":
 
     predict(
         distributions_path="data_warehouse/distributions",
-        cam_name="cam_0_left",
-        object_name="purple_duck",
-        test_images=["data_warehouse/dataset/purple_duck/test/good/cam_0_left/015.png"],
+        cam_name="Front",
+        object_name="cute_boi",
+        test_images=["data_warehouse/dataset/cute_boi/test/good/Front/001.png"]
+,
     )

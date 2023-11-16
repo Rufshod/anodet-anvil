@@ -186,12 +186,12 @@ def run_prediction(
     # TODO update hardcoded cam_names with input strings from Anvil
     predict(
         distributions_path,
-        cam_name=angle_name,
+        cam_name="Front",
         object_name=object_name,
 
         # test_images: replace with image captured in Anvil
         test_images=[
-            f"data_warehouse/dataset/{object_name}/test/albinism/{angle_name}/000.png"
+            f"data_warehouse/dataset/{object_name}/test/good/Front/000.png"
         ],
 
         THRESH=13,
@@ -285,6 +285,31 @@ def capture_image(object_input_name: str = "object") -> None:
         warehouse,
         train_images=1,
         test_anomaly_images=0,
+        allow_user_input=False,
+        overwrite_original=False,
+    )
+    camera_manager.run()
+    print(warehouse)
+
+@anvil.server.callable
+def capture_test_image(object_input_name: str = "object") -> None:
+    """
+    Captures a single image from the camera for the specified object.
+
+    Args:
+        object_input_name (str, optional): The name of the object to capture the image for. Defaults to "object".
+
+    Returns:
+        None
+    """
+    print("Capturing image")
+    warehouse = Warehouse()
+    warehouse.build(object_name=object_input_name, anomalies=[])
+
+    camera_manager = CameraManager(
+        warehouse,
+        train_images=0,
+        test_anomaly_images=1,
         allow_user_input=False,
         overwrite_original=False,
     )
