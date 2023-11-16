@@ -2,15 +2,16 @@ import json
 import os
 import time
 import sys
-
+from typing import Optional, Union, List
 import anvil.server
-from flask import Flask, request, send_from_directory
+from flask import Flask, request, send_from_directory, Response
+
 # from multicamcomposepro.camera import CameraManager
 # from multicamcomposepro.utils import Warehouse
 
 # Get mccp by path
 current_dir = os.getcwd()
-target_dir = os.path.join(current_dir, '..', 'mccp/src')
+target_dir = os.path.join(current_dir, "..", "mccp/src")
 sys.path.append(target_dir)
 
 from multicamcomposepro.camera import CameraManager
@@ -35,12 +36,26 @@ path_to_images = os.path.join(
 distributions_path = "data_warehouse/distributions"
 dataset_path = "data_warehouse/dataset"
 camera_config = "camera_config.json"
-model_config = "model_config.json" # TODO!! 
+model_config = "model_config.json"  # TODO!!
 
 
 @anvil.server.callable
-def train_model(object_name = object_name, camera_config = camera_config, resnet_config = None):
-    """Create and fit model. Stores model parameters in warehouse/distributions/{objet_name}."""
+def train_model(
+    object_name: str = object_name,
+    camera_config: str = camera_config,
+    resnet_config: Optional[str] = None,
+) -> None:
+    """
+    Create and fit a model. Stores model parameters in warehouse/distributions/{object_name}.
+
+    Args:
+        object_name (str): Name of the object for training.
+        camera_config (str): Path to the camera configuration file.
+        resnet_config (str, optional): Configuration for the ResNet model.
+
+    Returns:
+        None
+    """
 
     # TODO  load parameters (some of them) from model_config
 
@@ -50,20 +65,32 @@ def train_model(object_name = object_name, camera_config = camera_config, resnet
     data = json.loads(camera_config_file)
     angles = [item["Angle"] for item in data]
 
-    if 'Skip' in angles:
-        angles.remove('Skip')
+    if "Skip" in angles:
+        angles.remove("Skip")
 
     #  Should load json for resnet_config here TODO
-    model = get_model(selected_model="resnet18") #  TODO resnet_config json file for input arg
+    model = get_model(
+        selected_model="resnet18"
+    )  #  TODO resnet_config json file for input arg
 
     for angle in angles:
         dataloader = get_dataloader(dataset_path, angle, object_name)
         model_fit(model, dataloader, distributions_path, angle, object_name)
         #  This for loop works for now, but a future implementation should be to rewrite the dataloader
 
+
 # Function to set the object name from Anvil
 @anvil.server.callable
-def set_object_name(object_input_name: str = "object"):
+def set_object_name(object_input_name: str = "object") -> str:
+    """
+    Set the global object name.
+
+    Args:
+        object_input_name (str): The input name for the object.
+
+    Returns:
+        str: The updated object name.
+    """
     global object_name
     object_name = object_input_name
     print("Object name set to:", object_name)
@@ -72,8 +99,17 @@ def set_object_name(object_input_name: str = "object"):
 
 # Called when URL is loaded
 @app.route("/<angle>/<image>")
-def get_image(angle, image):
-    print("RUNNING GET_IMAGE")
+def get_image(angle: str, image: str) -> Union[str, Response]:
+    """
+    Retrieve an image from the specified directory.
+
+    Args:
+        angle (str): The angle of the camera.
+        image (str): The name of the image file.
+
+    Returns:
+        Union[str, Response]: The image file or an error message.
+    """
     directory = os.path.join(
         os.getcwd(), "data_warehouse", "dataset", object_name, "train", "good", angle
     )
@@ -91,29 +127,56 @@ def get_image(angle, image):
     else:
         return "File not found", 404
 
+
 # use utils clean folder name function
 @anvil.server.callable
-def clean_name(name):
+def clean_name(name: str) -> str:
+    """
+    Cleans and returns a folder name using a method from the Warehouse class.
+
+    Args:
+        name (str): The name of the folder to be cleaned.
+
+    Returns:
+        str: The cleaned folder name.
+    """
     warehouse = Warehouse()
     warehouse.clean_folder_name(name)
     return name
 
 
-
-
-
-
-
-
 @anvil.server.callable
-def get_distribution_list(distributions_path=distributions_path):
-    # List the DIR NAMES in data_warehouse/distributions
+def get_distribution_list(distributions_path: str = distributions_path) -> List[str]:
+    """
+    Retrieves a list of directory names in the specified distributions path.
+
+    Args:
+        distributions_path (str, optional): The path to the distributions directory.
+                                            Defaults to the global distributions_path.
+
+    Returns:
+        List[str]: A list of directory names found in the distributions path.
+                   Returns a message if no distributions are saved.
+    """
     folder_contents = os.listdir(distributions_path)
     return folder_contents if folder_contents else "No distributions saved!"
 
 
 @anvil.server.callable
-def run_prediction(object_name, distributions_path=distributions_path):
+def run_prediction(
+    object_name: str, distributions_path: str = distributions_path
+) -> None:
+    """
+    Runs a prediction on a specified object using predefined camera settings and test images.
+
+    Args:
+        object_name (str): The name of the object to run the prediction on.
+        distributions_path (str, optional): The path to the model distributions.
+                                            Defaults to the global distributions_path.
+
+    Returns:
+        None
+    """
 
     # TODO update hardcoded cam_names with input strings from Anvil
     predict(
@@ -173,8 +236,13 @@ def load_from_json():
 
 
 @anvil.server.callable
-def capture_initial_images():
-    """Captures the initial images for the cameras in the camera_config.json file"""
+def capture_initial_images() -> None:
+    """
+    Captures initial images for each camera specified in the camera_config.json file.
+
+    Returns:
+        None
+    """
     path_to_config = "camera_config.json"
 
     if os.path.exists(path_to_config) and os.path.getsize(path_to_config):
@@ -185,20 +253,26 @@ def capture_initial_images():
             warehouse, train_images=1, test_anomaly_images=0, allow_user_input=False
         )
         camera_manager.run()
-        return print("Done capturing initial images")
+        print("Done capturing initial images")
     else:
         print("camera_config.json does not exist or is empty.")
 
 
 @anvil.server.callable
-def capture_image(object_input_name: str = "object"):
-    """Function to capture a single image from the camera"""
+def capture_image(object_input_name: str = "object") -> None:
+    """
+    Captures a single image from the camera for the specified object.
+
+    Args:
+        object_input_name (str, optional): The name of the object to capture the image for. Defaults to "object".
+
+    Returns:
+        None
+    """
     print("Capturing image")
-    # Get settings from json
     warehouse = Warehouse()
     warehouse.build(object_name=object_input_name, anomalies=[])
 
-    # Take picture
     camera_manager = CameraManager(
         warehouse,
         train_images=1,
