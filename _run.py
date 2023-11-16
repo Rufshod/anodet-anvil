@@ -22,7 +22,6 @@ from ano import predict, get_dataloader, model_fit, get_model
 
 uplink_key = json.load(open("anvil_key.json"))["Server_Uplink_Key"]
 anvil.server.connect(uplink_key)
-print("Connected to Anvil server")
 
 app = Flask(__name__)
 object_name = "preview"
@@ -111,18 +110,27 @@ def get_distribution_list(distributions_path=distributions_path):
     folder_contents = os.listdir(distributions_path)
     return folder_contents if folder_contents else "No distributions saved!"
 
+@anvil.server.callable
+def get_n_angles(object_name):
+    angles = os.listdir(f"data_warehouse/dataset/{object_name}/train/good")
+    return angles, len(angles)
+
+
 
 @anvil.server.callable
-def run_prediction(object_name, distributions_path=distributions_path):
+def run_prediction(object_name, angle_name, distributions_path=distributions_path):
 
     # TODO update hardcoded cam_names with input strings from Anvil
     predict(
         distributions_path,
-        cam_name="cam_0_left",
+        cam_name=angle_name,
         object_name=object_name,
+
+        # test_images: replace with image captured in Anvil
         test_images=[
-            "/Users/helvetica/_master_anodet/anodet/data_warehouse/dataset/purple_duck/test/albinism/cam_0_left/001.png"
+            f"data_warehouse/dataset/{object_name}/test/albinism/{angle_name}/000.png"
         ],
+
         THRESH=13,
     )
 
