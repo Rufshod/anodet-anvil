@@ -226,9 +226,7 @@ def get_n_angles(object_name):
 
 
 @anvil.server.callable
-def run_prediction(
-    object_name: str, distributions_path: str = distributions_path
-) -> None:
+def run_prediction(object_name: str, cam_name: str, distributions_path: str = distributions_path) -> None:
     """
     Runs a prediction on a specified object using predefined camera settings and test images.
 
@@ -240,11 +238,12 @@ def run_prediction(
     Returns:
         None
     """
+    print(object_name, cam_name, distributions_path)
 
     # TODO update hardcoded cam_names with input strings from Anvil
-    predict(
+    image_classifications, image_scores, score_maps = predict(
         distributions_path,
-        cam_name="Front",
+        cam_name=cam_name,
         object_name=object_name,
 
         # test_images: replace with image captured in Anvil
@@ -252,9 +251,11 @@ def run_prediction(
             f"data_warehouse/dataset/{object_name}/test/good/Front/000.png"
         ],
 
+
         THRESH=13,
     )
 
+    return image_classifications, image_scores, score_maps
 
 @anvil.server.callable
 def get_image_url(angle, image_name):
