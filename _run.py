@@ -311,7 +311,7 @@ def capture_test_image(object_input_name: str = "object") -> None:
         train_images=0,
         test_anomaly_images=1,
         allow_user_input=False,
-        overwrite_original=False,
+        overwrite_original=True,
     )
     camera_manager.run()
     print(warehouse)
