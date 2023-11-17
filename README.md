@@ -1,6 +1,13 @@
 # anodet-anvil
 An Anvil + Flask webapp for for computer vision anomlay detection with [Anodet](https://github.com/OpenAOI/anodet) framework.
 
+## Requirements
+- Python 3.10
+- mkdocs, mkdocstrings, mkdocs-material
+- anvil, anvil-uplink
+- mccp
+
+
 ## Installation
 
 Clone the repository
@@ -10,9 +17,9 @@ git clone https://github.com/rufshod/anodet-anvil.git
 
 Clone the <a href="https://anvil.works/build#clone:JT6SCPFZFHLBPZ6K=SDLUIZFY3TF7DKYEMR2HJWDA|YZFAF3UQ2TEZDHTQ=DUSY6UWZ2WDCVXNUJYFEU6NW|5IMMJBKGCSO6YGHB=K2QYA32ANY6JM6L3SQVCNJWH">Anvil Works Project Source Code</a>
 
-
-## Create a venv
-TODO add requirements etc.
+```bash
+pip install mkdocs mdocstrings mdocs-material anvil anvil-uplink mccp
+```
 
 ## Warehouse setup
 
@@ -34,8 +41,8 @@ data_warehouse
 
 ## What about uplink key?
 
-Head over to Anvil Works to get your uplink key. Add it to a json and place it in you root dir like-a-so:
-```
+Head over to Anvil Works to get your uplink key. Create anvil_key.json and place the uplink key in you root dir like this:
+```json
 {
     "Server_Uplink_Key": "server_XXXXXXXXXXXXXXXXXXXXXXXX-xxxxxxxxxxxxxxxxx"
 }
