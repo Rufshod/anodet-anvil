@@ -219,9 +219,10 @@ def get_distribution_list(distributions_path: str = distributions_path) -> List[
     return folder_contents if folder_contents else "No distributions saved!"
 
 @anvil.server.callable
-def get_n_angles(object_name):
+def get_angles_from_warehouse(object_name):
+    # Quick fix, should be properly stored and accessed from json camera config TODO
     angles = os.listdir(f"data_warehouse/dataset/{object_name}/train/good")
-    return angles, len(angles)
+    return angles
 
 
 
@@ -248,14 +249,16 @@ def run_prediction(object_name: str, cam_name: str, distributions_path: str = di
 
         # test_images: replace with image captured in Anvil
         test_images=[
-            f"data_warehouse/dataset/{object_name}/test/good/Front/000.png"
+            f"data_warehouse/dataset/{object_name}/test/good/{cam_name}/000.png"
         ],
 
 
         THRESH=13,
     )
 
-    return image_classifications, image_scores, score_maps
+    # Cannot return tensors to Anvil
+    # Do we want to return any of image_classifications, image_scores, score_maps (?) if so - they need to be converted to ndarray or list or smt
+    return
 
 @anvil.server.callable
 def get_image_url(angle, image_name):
@@ -392,6 +395,28 @@ def capture_test_image(object_input_name: str = "object") -> None:
     )
     camera_manager.run()
     print(warehouse)
+
+
+
+# Just some presets values
+@anvil.server.callable
+def get_preset(key):
+    presets = {
+        "backbone": ["ResNet18", "Wide_ResNet50"],
+        "resize": [112, 224, 448, 896],
+        "activation": ["ReLU"],
+        "batch_size": [8, 16, 32],
+        "device": "cpu",
+        "gaussian_blur": True,
+    }
+
+    if key == "resize":
+        return [str(value) for value in presets.get(key, [])]
+    else:
+        return presets.get(key, [])
+
+    return presets.get(key)
+
 
 
 if __name__ == "__main__":
