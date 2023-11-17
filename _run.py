@@ -156,8 +156,8 @@ def get_test_image(angle: str, image: str) -> Union[str, Response]:
         return "File not found", 404
     
 # PLOT
-@app.route("/test/<angle>/<image>")
-def get_plot(angle: str, image: str) -> Union[str, Response]:
+@app.route("/plots/<image>")
+def get_plot(image: str) -> Union[str, Response]:
     """
     Retrieve an image from the test directory.
 
@@ -169,7 +169,7 @@ def get_plot(angle: str, image: str) -> Union[str, Response]:
         Union[str, Response]: The image file or an error message.
     """
     directory = os.path.join(
-        os.getcwd(), "data_warehouse", "plots", object_name, angle
+        os.getcwd(), "data_warehouse", "plots"
     )
     full_path = os.path.join(directory, image)
     print("Full path to image:", full_path)
@@ -264,6 +264,7 @@ def run_prediction(object_name: str, cam_name: str, distributions_path: str = di
 def get_image_url(angle, image_name):
     """Returns the URL of the image on the Flask server so that it can be displayed in the Anvil app"""
     # Use the current time as a cache-busting query parameter
+    print("GETTING IMAGE GET IMAGE URL")
     timestamp = int(time.time())
     image_path = f"http://127.0.0.1:5000/{angle}/{image_name}?cb={timestamp}"
     return image_path
@@ -278,12 +279,13 @@ def get_test_image_url(angle, image_name):
     return image_path
 
 @anvil.server.callable
-def get_plot_url(angle, image_name):
+def get_plot_url():
     """Returns the URL of the image from the test directory on the Flask server so that it can be displayed in the Anvil app"""
     # Use the current time as a cache-busting query parameter
+    "getting plot url"
     timestamp = int(time.time())
     # Update the URL to point to the new Flask route for test images
-    image_path = f"http://127.0.0.1:5000/plot/{angle}/{image_name}?cb={timestamp}"
+    image_path = f"http://127.0.0.1:5000/plots/plot_0.png?cb={timestamp}"
     return image_path
 
 
