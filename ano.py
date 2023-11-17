@@ -1,6 +1,7 @@
 import os
 import sys
 import numpy as np
+import json
 
 import matplotlib
 
@@ -17,7 +18,7 @@ current_dir = os.getcwd()
 target_dir = os.path.join(current_dir, "..", "anodet")
 sys.path.append(target_dir)
 
-from anodet import Padim, AnodetDataset, to_batch, classification, visualization
+from anodet import Padim, AnodetDataset, to_batch, classification, visualization, standard_image_transform
 
 
 # TODO move to json
@@ -75,8 +76,6 @@ def build_preprocessing(preprocessing_config: Dict[str, Any]) -> transforms.Comp
         transforms.Compose: The preprocessing pipeline.
     """
 
-    print("Preprocessing Config:", preprocessing_config)
-
     resize_size = preprocessing_config["preprocessing"]["resize"]
     normalize = transforms.Normalize(
         mean=preprocessing_config["preprocessing"]["normalize"]["mean"],
@@ -107,9 +106,7 @@ def get_dataloader(dataset_path: str, cam_name: str, object_name: str) -> DataLo
         DataLoader: The DataLoader for the dataset.
     """
     dataset = AnodetDataset(
-        image_directory_path=os.path.join(
-            dataset_path, f"{object_name}/train/good/{cam_name}"
-        ),
+        image_directory_path=os.path.join(dataset_path, f"{object_name}/train/good/{cam_name}"),
         mask_directory_path=None,
         image_transforms=build_preprocessing(
             config_resnet
@@ -156,7 +153,7 @@ def model_fit(
         distributions_path, f"{object_name}/{object_name}_{cam_name}"
     )
     torch.save(model.mean, save_path + "_mean.pt")
-    torch.save(model.mean, save_path + "_cov_inv.pt")
+    torch.save(model.cov_inv, save_path + "_cov_inv.pt")
     print(f"Parameters saved at {distributions_path}")
 
 
@@ -187,25 +184,46 @@ def predict(
     # An idea - perhaps - is to modify the DataLoader / AnodetDataset to hold images for all angles
 
     images = [cv2.cvtColor(cv2.imread(path), cv2.COLOR_BGR2RGB) for path in test_images]
-    device = config_resnet.get("device", "cpu")
-    distributions_path = os.path.join(
-        distributions_path, f"{object_name}/{object_name}_{cam_name}"
-    )
+
+    print("Sending to batch:")
+    print("================")
+    batch = to_batch(images, build_preprocessing(config_resnet), torch.device("cpu"))
+    
+    print(batch)
+
 
     # Preprocessing test image(s)
-    batch = to_batch(images, build_preprocessing(config_resnet), torch.device(device))
+    print("pre-processing")
+    print(json.dumps(config_resnet, indent=4))
+    print(build_preprocessing(config_resnet))
+
+
 
     # Load model (mean and cov_inv)
-    mean = torch.load(distributions_path + "_mean.pt")
-    cov_inv = torch.load(distributions_path + "_cov_inv.pt")
-    padim = Padim(
-        backbone="resnet18", mean=mean, cov_inv=cov_inv, device=torch.device(device)
-    )
+    print("Looking for distributons...")
 
-    # Predict and classify
-    image_scores, score_maps = padim.predict(
-        batch, gaussian_blur=config_resnet.get("gaussian_blur")
-    )
+    mean_path = os.path.join(distributions_path, f"{object_name}/{object_name}_{cam_name}_mean.pt")
+    cov_inv_path = os.path.join(distributions_path, f"{object_name}/{object_name}_{cam_name}_cov_inv.pt")
+
+    if not os.path.exists(mean_path) or not os.path.exists(cov_inv_path):
+        print(f"Could not find mean or cov_inv distributons for {object_name}, {cam_name}")
+        return
+
+    print(mean_path)
+    print(cov_inv_path)
+
+    print("Loading distributions...")
+    mean = torch.load(mean_path)
+    cov_inv = torch.load(cov_inv_path)
+    print(f"{mean.shape=}, {cov_inv.shape=}")
+
+    device = config_resnet.get("device", "cpu")
+    backbone = config_resnet.get("backbone", "resnet18").lower()
+
+    # TODO have user select PaDiM or PatchCore
+    padim = Padim(backbone=backbone, mean=mean, cov_inv=cov_inv, device=torch.device(device))
+
+    image_scores, score_maps = padim.predict(batch, gaussian_blur=config_resnet.get("gaussian_blur", True))
     score_map_classifications = classification(score_maps, THRESH)
     image_classifications = classification(image_scores, THRESH)
 
@@ -233,31 +251,27 @@ def predict(
         )  # TODO save to warehouse/plots/object_name/angle
         plt.close()
 
+    print("Done.")
     print("Saved figure at data_warehouse/plots.")
 
     return image_classifications, image_scores, score_maps
 
 
 if __name__ == "__main__":
+
     # Should be the same for the entire app
     dataset_path = "data_warehouse/dataset"
     distributions_path = "data_warehouse/distributions"
-
-    # Should be set for user
+    
+    # Should be set by user
     cam_name = "Front"
-    object_name = ["test_object"]
+    object_name = "gamma"
 
     # Train
-    if True:
-        dataloader = get_dataloader(dataset_path, cam_name, object_name[0])
-        backbone_name = config_resnet["backbone"]
-        model = Padim(backbone=backbone_name.lower())
-        model_fit(model, dataloader, distributions_path, cam_name, object_name[0])
+    # if True:
+    #     dataloader = get_dataloader(dataset_path, cam_name, object_name[0])
+    #     backbone_name = config_resnet["backbone"]
+    #     model = Padim(backbone=backbone_name.lower())
+    #     model_fit(model, dataloader, distributions_path, cam_name, object_name[0])
 
-    predict(
-        distributions_path="data_warehouse/distributions",
-        cam_name="Front",
-        object_name="test_object",
-        test_images=["data_warehouse/dataset/test_object/test/good/Front/001.png"]
-,
-    )
+    predict(distributions_path, cam_name, object_name, test_images=[f"data_warehouse/dataset/{object_name}/test/good/{cam_name}/000.png"])
