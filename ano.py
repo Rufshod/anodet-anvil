@@ -239,12 +239,14 @@ def predict(
     )
 
     for idx in range(len(images)):
-        fig, axs = plt.subplots(1, 4, figsize=(12, 6))
-        fig.suptitle(f"Image: {idx}", y=0.75, fontsize=14)
+        fig, axs = plt.subplots(1, 4, figsize=(16, 3))
+
         axs[0].imshow(images[idx])
         axs[1].imshow(boundary_images[idx])
         axs[2].imshow(heatmap_images[idx])
         axs[3].imshow(highlighted_images[idx])
+
+        plt.subplots_adjust(left=0.03, right=0.995, wspace=0.2)
 
         plt.savefig(
             f"data_warehouse/plots/plot_{idx}.png"
@@ -254,6 +256,9 @@ def predict(
     print("Done.")
     print("Saved figure at data_warehouse/plots.")
 
+    # Convert tensors to float and int
+    image_scores = float(image_scores.item()) # Report anomaly if return value is over threshold
+    image_classifications = int(image_classifications.item()) # Report anomaly if return value is 0
     return image_classifications, image_scores, score_maps
 
 
@@ -274,4 +279,9 @@ if __name__ == "__main__":
     #     model = Padim(backbone=backbone_name.lower())
     #     model_fit(model, dataloader, distributions_path, cam_name, object_name[0])
 
-    predict(distributions_path, cam_name, object_name, test_images=[f"data_warehouse/dataset/{object_name}/test/good/{cam_name}/000.png"])
+    image_classifications, image_scores, score_maps = predict(distributions_path, cam_name, object_name, test_images=[f"data_warehouse/dataset/{object_name}/test/good/{cam_name}/000.png"])
+
+    print(image_classifications)
+    print(image_scores)
+    print(score_maps)
+
