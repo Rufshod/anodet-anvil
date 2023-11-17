@@ -256,9 +256,8 @@ def run_prediction(object_name: str, cam_name: str, distributions_path: str = di
         THRESH=13,
     )
 
-    # Cannot return tensors to Anvil
-    # Do we want to return any of image_classifications, image_scores, score_maps (?) if so - they need to be converted to ndarray or list or smt
-    return
+    # Cannot return tensors to Anvil, these are converted to int and float
+    return image_classifications, image_scores
 
 @anvil.server.callable
 def get_image_url(angle, image_name):
