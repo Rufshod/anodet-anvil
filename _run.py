@@ -32,6 +32,8 @@ path_to_images = os.path.join(
 
 # ============================================ #
 
+warehouse = Warehouse()
+
 distributions_path = "data_warehouse/distributions"
 dataset_path = "data_warehouse/dataset"
 camera_config = "camera_config.json"
@@ -197,7 +199,6 @@ def clean_name(name: str) -> str:
     Returns:
         str: The cleaned folder name.
     """
-    warehouse = Warehouse()
     warehouse.clean_folder_name(name)
     return name
 
@@ -241,18 +242,11 @@ def run_prediction(object_name: str, cam_name: str, distributions_path: str = di
     """
     print(object_name, cam_name, distributions_path)
 
-    # TODO update hardcoded cam_names with input strings from Anvil
     image_classifications, image_scores, score_maps = predict(
         distributions_path,
         cam_name=cam_name,
         object_name=object_name,
-
-        # test_images: replace with image captured in Anvil
-        test_images=[
-            f"data_warehouse/dataset/{object_name}/test/good/{cam_name}/000.png"
-        ],
-
-
+        test_images=[f"data_warehouse/dataset/{object_name}/test/good/{cam_name}/000.png"],
         THRESH=13,
     )
 
@@ -336,7 +330,6 @@ def capture_initial_images() -> None:
 
     if os.path.exists(path_to_config) and os.path.getsize(path_to_config):
         print("Capturing initial images")
-        warehouse = Warehouse()
         warehouse.build("preview", [])
         camera_manager = CameraManager(
             warehouse, train_images=1, test_anomaly_images=0, allow_user_input=False
@@ -359,7 +352,6 @@ def capture_image(object_input_name: str = "object") -> None:
         None
     """
     print("Capturing image")
-    warehouse = Warehouse()
     warehouse.build(object_name=object_input_name, anomalies=[])
 
     camera_manager = CameraManager(
@@ -384,7 +376,6 @@ def capture_test_image(object_input_name: str = "object") -> None:
         None
     """
     print("Capturing image")
-    warehouse = Warehouse()
     warehouse.build(object_name=object_input_name, anomalies=[])
 
     camera_manager = CameraManager(
